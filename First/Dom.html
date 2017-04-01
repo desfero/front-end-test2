@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>JS - manipulowanie DOMem</title>
+</head>
+<body>
+    <demo-app></demo-app>
+
+<script src="./shadydom.min.js" ></script>
+<script src="./custom-elements.min.js" ></script>
+<script>
+    class _ {
+        static times(num) {
+            return Array.from(Array(num));
+        }
+    }
+
+    class _Component_ extends HTMLElement {
+        constructor(mode = 'closed') {
+            super();
+
+             (function _decorateRender_() {
+                const render = this.render;
+                const shadowRoot = this.attachShadow({ mode });
+
+                this.render = function _render_(...args) {
+                    return shadowRoot.innerHTML = `
+                        <style>
+                            ${this.styles()}
+                        </style>
+                        ${render.call(this)}
+                    `;     
+                } 
+            }).apply(this);
+
+            (function _initializeState_() {
+                this.state = {};
+                Object.entries(this.defaultState())
+                    .forEach(
+                       ([key, val]) => {
+                           Object.defineProperty(this.state, key, {
+                                get: () => val,
+                                set: newVal => {                                        
+                                    if (newVal !== val) {
+                                        val = newVal;
+                                        this.render();
+                                    }
+                                }
+                            })
+                        });
+            }).apply(this);
+        }
+    }
+
+    class Component extends _Component_ {
+
+        constructor(...attrs) {
+            super(...attrs);
+
+            this.render();
+        }
+
+        styles() {
+            return ``;
+        }
+
+        defaultState() {
+            return {}
+        }
+        
+        render() {
+  	        throw new Error('render method should be implemented');
+        }
+
+        static get htmlName() {
+            return this.name
+                        .replace(/Component$/, '')
+                        .replace(/([a-z])([A-Z])/g, '$1-$2')
+                        .toLowerCase();
+        }
+
+        static mount(name = this.htmlName) {
+            if (this === Component) {
+                console.error('"Component" cannot be mounted!');
+            } else {
+                if (!name.includes('-')) {
+                    throw new Error(`${name} is invalid as a component name`)
+                }                    
+
+                window.customElements.define(name, this);
+            }
+        }
+     }
+
+    class DemoAppComponent extends Component {
+        constructor() {
+            super();
+        }
+
+	    render() {
+            return '<demo-table></demo-table>'
+        }
+    }
+
+    class DemoTableComponent extends Component {
+        constructor() {
+            super();
+        }
+
+        defaultState() {
+            return {
+                numberOfRows: 100,
+                customTableRowOnEvery: 3
+            }
+        }
+
+
+        render() {
+            return `
+                <ul>
+                    ${_.times(this.state.numberOfRows)
+                        .map((_, i) => (i + 1) % 3 ? `<demo-table-row></demo-table-row>`: 
+                                               `<demo-table-row-clickable></demo-table-row-clickable>`)
+                        .join('')}
+                </ul>
+            `;
+        }
+    }
+
+    class DemoTableRowComponent extends Component {
+            constructor() {
+                super();
+            }
+
+            render() {
+                return `
+                    <li>Not clickable</li>
+                `;
+            }
+    }
+
+    class DemoTableRowClickableComponent extends Component {
+        constructor() {
+            super();
+
+            this.addEventListener('click', e => {
+                this.state.toggle = !this.state.toggle;
+            })
+        }
+
+        defaultState() {
+            return {
+                toggle: false,
+            }
+        }
+
+        styles() {
+            return `
+                li:hover {
+                    cursor: pointer;
+                }
+
+                li.red {
+                    background: red;
+                }  
+
+                li.blue {
+                    background: blue;
+                }          
+            `;
+        }
+
+        render() {
+            return `
+                <li class="${this.state.toggle ? 'red' : 'blue'}">
+                        ${this.state.toggle ? 'Yes' : 'No'}
+                </li>
+            `;
+        }
+    }
+
+    class App {
+        constructor({ components }){
+            components.forEach(c => c.mount());
+        }
+    }
+
+    new App({ 
+        components: [
+            DemoAppComponent,
+            DemoTableComponent,
+            DemoTableRowComponent,
+            DemoTableRowClickableComponent
+        ]
+    });
+
+</script>
+</body>
+</html>

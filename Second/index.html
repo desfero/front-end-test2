@@ -1,0 +1,90 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>HTML and CSS</title>
+    <style>
+        /* 
+           I decided to go with flexbox without any fallback by @supports, 
+           because it have already strong support by modern browsers (IE11+).  
+           Mobile first approach gives as a ability to eliminate issues related to flexbox on outdated mobile phones. 
+        */
+
+        /* Medium */
+        @media (min-width: 768px) {
+            .container {
+                display: -webkit-flex;     
+                display: flex;            
+                -webkit-flex-wrap: wrap;
+                flex-wrap: wrap;
+            }
+            .container > .side-left {
+                -webkit-flex: 0 0 25%;
+                flex: 0 0 25%;
+                -webkit-order: 1;
+                order: 1;
+            }
+            .container > .side-right {
+                -webkit-flex: 0 0 100%;
+                flex: 0 0 100%;               
+                -webkit-order: 3;
+                order: 3;
+            }
+            .container > main {
+                -webkit-flex: 1;
+                flex: 1;                
+                -webkit-order: 2;
+                order: 2;
+            }
+        }
+        
+        /* Large */
+        @media (min-width: 1200px) {
+            .container > .side-right {
+                -webkit-flex: 0 0 25%;
+                flex: 0 0 25%;
+            }
+            .container > main {
+                -webkit-flex: 1;
+                flex: 1;
+            }
+        }
+
+        /* Not related to grid*/
+        .demo {
+            margin: 5px;
+            padding: 5px;
+            text-align: center;
+            background: lightgrey;
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <div class="demo">Header</div>
+    </header>
+
+    <div class="container">
+        <!--
+            Main tag is before any sidebars for better SEO. 
+            role="main" for screen reders which does not have HTML5 main tag support 
+        -->
+        <main role="main">
+            <div class="demo">Main content</div>
+        </main>
+
+        <aside class="side-left">
+            <div class="demo">Left sidebar</div>
+        </aside>
+
+        <aside class="side-right">
+            <div class="demo">Right sidebar</div>
+        </aside>
+    </div>
+
+    <footer>
+        <div class="demo">Footer</div>
+    </footer>
+</body>
+</html>
